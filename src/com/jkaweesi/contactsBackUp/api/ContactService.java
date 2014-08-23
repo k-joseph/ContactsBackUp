@@ -14,21 +14,15 @@
  */
 package com.jkaweesi.contactsBackUp.api;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.provider.ContactsContract;
-import android.provider.MediaStore;
 
 import com.jkaweesi.contactsBackUp.pojo.Contact;
 import com.jkaweesi.contactsBackUp.pojo.ContactEmails;
-import com.jkaweesi.contactsBackUp.pojo.ContactImage;
 import com.jkaweesi.contactsBackUp.pojo.ContactInstantMessenger;
 import com.jkaweesi.contactsBackUp.pojo.ContactNames;
 import com.jkaweesi.contactsBackUp.pojo.ContactNotes;
@@ -51,107 +45,20 @@ public class ContactService {
 	/**
 	 * specific contact id returned for a unique contact
 	 */
-	private String contactId;
+	private static String contactId;
 
 	public static List<Contact> getStoredContacts(
 			ContentResolver contentResolver) {
 
-		Contact contact = new Contact();
-		ContactNames names = new ContactNames();
-		ContactPhoneNumbers phones = new ContactPhoneNumbers();
-		ContactEmails emails = new ContactEmails();
-		ContactImage image = new ContactImage();
-
 		List<Contact> contacts = new ArrayList<Contact>();
-
-		Cursor cursor = contentResolver.query(
-				ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
-
-		if (cursor.getCount() > 0) {
-			while (cursor.moveToNext()) {
-
-				String id = cursor.getString(cursor
-						.getColumnIndex(ContactsContract.Contacts._ID));
-
-				boolean hasPhoneNumbers = Integer
-						.parseInt(cursor.getString(cursor
-								.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0;
-				String displayName = cursor
-						.getString(cursor
-								.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-				String imageUri = cursor
-						.getString(cursor
-								.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
-
-				if (hasPhoneNumbers) {
-					// setting up the contact object to be backed up
-					contact.setContactId(id);
-					names.setDisplayName(displayName);
-					contact.setContactNames(names);
-					// TODO set more names here
-
-					Cursor pCur = contentResolver.query(
-							ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-							null,
-							ContactsContract.CommonDataKinds.Phone.CONTACT_ID
-									+ " = ?", new String[] { id }, null);
-					while (pCur.moveToNext()) {
-						String mobilePhoneNumber = pCur
-								.getString(pCur
-										.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-						phones.setMobilePhoneNumber(mobilePhoneNumber);
-						contact.setContactPhoneNumbers(phones);
-						// TODO set other phone numbers here
-					}
-					pCur.close();
-
-					Cursor emailCursor = contentResolver.query(
-							ContactsContract.CommonDataKinds.Email.CONTENT_URI,
-							null,
-							ContactsContract.CommonDataKinds.Email.CONTACT_ID
-									+ " = ?", new String[] { id }, null);
-					while (emailCursor.moveToNext()) {
-						String mainEmailAddress = emailCursor
-								.getString(emailCursor
-										.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS));
-						String emailType = emailCursor
-								.getString(emailCursor
-										.getColumnIndex(ContactsContract.CommonDataKinds.Email.TYPE));
-						emails.setMainEmailAddress(mainEmailAddress);
-						emails.setEmailType(emailType);
-						contact.setContactEmails(emails);
-						// TODO set other emails here
-
-					}
-
-					emailCursor.close();
-				}
-
-				if (imageUri != null) {
-					try {
-						Bitmap bitmap = MediaStore.Images.Media.getBitmap(
-								contentResolver, Uri.parse(imageUri));
-						image.setBitmap(bitmap);
-						image.setImageURI(imageUri);
-						contact.setImage(image);
-						// TODO set more image properties here
-
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-
-				}
-				contacts.add(contact);
-			}
-
-		}
+		contacts = getAndSetNamesAndPhonesEtc(contentResolver, contacts);
 
 		return contacts;
 	}
 
-	public Contact getAndSetNamesAndPhones(ContentResolver cr, Contact contact) {
+	public static List<Contact> getAndSetNamesAndPhonesEtc(ContentResolver cr,
+			List<Contact> contacts) {
+		Contact contact = new Contact();
 		ContactNames names = new ContactNames();
 		ContactPhoneNumbers phones = new ContactPhoneNumbers();
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
@@ -159,6 +66,7 @@ public class ContactService {
 
 		if (cur.getCount() > 0) {
 			while (cur.moveToNext()) {
+				int pos = cur.getPosition();
 				String id = cur.getString(cur
 						.getColumnIndex(ContactsContract.Contacts._ID));
 				String name = cur
@@ -166,9 +74,11 @@ public class ContactService {
 								.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
 				contact.setContactId(id);
-				this.contactId = id;
+				ContactService.contactId = id;
 				names.setDisplayName(name);
 				contact.setContactNames(names);
+
+				contact = getAndSetEmails(cr, contact);
 
 				if (Integer
 						.parseInt(cur.getString(cur
@@ -197,18 +107,22 @@ public class ContactService {
 					pCur.close();
 					contact.setContactPhoneNumbers(phones);
 				}
+				contact = getAndSetPostalAddresses(cr, contact);
+				contact = getAndSetInstantMessages(cr, contact);
+
+				contacts.add(contact);
 			}
 		}
-		return contact;
+		return contacts;
 	}
 
-	public Contact getAndSetEmails(ContentResolver cr, Contact contact) {
+	public static Contact getAndSetEmails(ContentResolver cr, Contact contact) {
 		ContactEmails emails = new ContactEmails();
 
 		Cursor emailCur = cr.query(
 				ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
 				ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
-				new String[] { this.contactId }, null);
+				new String[] { ContactService.contactId }, null);
 		while (emailCur.moveToNext()) {
 			String email = emailCur
 					.getString(emailCur
@@ -235,12 +149,12 @@ public class ContactService {
 		return contact;
 	}
 
-	public Contact getAndSetNotes(ContentResolver cr, Contact contact) {
+	public static Contact getAndSetNotes(ContentResolver cr, Contact contact) {
 		ContactNotes notes = new ContactNotes();
 
 		String noteWhere = ContactsContract.Data.CONTACT_ID + " = ? AND "
 				+ ContactsContract.Data.MIMETYPE + " = ?";
-		String[] noteWhereParams = new String[] { this.contactId,
+		String[] noteWhereParams = new String[] { ContactService.contactId,
 				ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE };
 		Cursor noteCur = cr.query(ContactsContract.Data.CONTENT_URI, null,
 				noteWhere, noteWhereParams, null);
@@ -260,7 +174,8 @@ public class ContactService {
 		return contact;
 	}
 
-	public Contact getAndSetPostalAddresses(ContentResolver cr, Contact contact) {
+	public static Contact getAndSetPostalAddresses(ContentResolver cr,
+			Contact contact) {
 		ContactPostalAddresses postalAddresses = new ContactPostalAddresses();
 		PostalAddress address = new PostalAddress();
 		HomePostalAddress homeAddress = new HomePostalAddress();
@@ -270,12 +185,11 @@ public class ContactService {
 		String addrWhere = ContactsContract.Data.CONTACT_ID + " = ? AND "
 				+ ContactsContract.Data.MIMETYPE + " = ?";
 		String[] addrWhereParams = new String[] {
-				this.contactId,
+				ContactService.contactId,
 				ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE };
 		Cursor addrCur = cr.query(ContactsContract.Data.CONTENT_URI, null,
 				addrWhere, addrWhereParams, null);
 
-		int pos = addrCur.getPosition();
 		while (addrCur.moveToNext()) {
 			String poBox = addrCur
 					.getString(addrCur
@@ -307,8 +221,6 @@ public class ContactService {
 			address.setType(type);
 			address.setZipCode(postalCode);
 
-			pos = addrCur.getPosition();
-
 			if (addrCur.getPosition() == 0) {
 				homeAddress = (HomePostalAddress) address;
 				postalAddresses.setHomePostalAddress(homeAddress);
@@ -331,12 +243,13 @@ public class ContactService {
 		return contact;
 	}
 
-	public Contact getAndSetInstantMessages(ContentResolver cr, Contact contact) {
+	public static Contact getAndSetInstantMessages(ContentResolver cr,
+			Contact contact) {
 		ContactInstantMessenger instantMsgs = new ContactInstantMessenger();
 
 		String imWhere = ContactsContract.Data.CONTACT_ID + " = ? AND "
 				+ ContactsContract.Data.MIMETYPE + " = ?";
-		String[] imWhereParams = new String[] { this.contactId,
+		String[] imWhereParams = new String[] { ContactService.contactId,
 				ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE };
 
 		Cursor imCur = cr.query(ContactsContract.Data.CONTENT_URI, null,
@@ -360,13 +273,13 @@ public class ContactService {
 		return contact;
 	}
 
-	public OrganizationPostalAddress getAndSetOrganizationInfo(
+	public static OrganizationPostalAddress getAndSetOrganizationInfo(
 			ContentResolver cr) {
 		OrganizationPostalAddress orgInfo = new OrganizationPostalAddress();
 
 		String orgWhere = ContactsContract.Data.CONTACT_ID + " = ? AND "
 				+ ContactsContract.Data.MIMETYPE + " = ?";
-		String[] orgWhereParams = new String[] { this.contactId,
+		String[] orgWhereParams = new String[] { ContactService.contactId,
 				ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE };
 		Cursor orgCur = cr.query(ContactsContract.Data.CONTENT_URI, null,
 				orgWhere, orgWhereParams, null);
