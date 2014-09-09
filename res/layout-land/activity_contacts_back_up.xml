@@ -8,80 +8,33 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".ContactsBackUp" >
 
-    <TextView
-        android:id="@+id/viewContactMsg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/view_existing"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="117dp"
+        android:layout_weight="0.18" >
+    </ListView>
 
-    <TableRow
-        android:id="@+id/contactsMsg"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
-
-        <TextView
-            android:id="@+id/nameMsg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:text="@string/name"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textStyle="bold" >
-        </TextView>
-
-        <TextView
-            android:id="@+id/phoneMsg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:text="@string/phone"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textStyle="bold" >
-        </TextView>
-
-        <TextView
-            android:id="@+id/emailMsg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:text="@string/email"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textStyle="bold" >
-        </TextView>
-    </TableRow>
-
-    <TableRow
-        android:id="@+id/contactRow"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
 
-        <TextView
-            android:id="@+id/name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#FFFFFF" >
-        </TextView>
-
-        <TextView
-            android:id="@+id/phone"
+        <CheckBox
+            android:id="@+id/selectAll"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:padding="5dp"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#FFFFFF" >
-        </TextView>
+            android:layout_height="36dp"
+            android:text="Select All" />
 
-        <TextView
-            android:id="@+id/email"
+        <CheckBox
+            android:id="@+id/deselectAll"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:padding="5dp"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="#FFFFFF" >
-        </TextView>
-    </TableRow>
+            android:layout_height="36dp"
+            android:text="Deselect All" />
+    </LinearLayout>
+
+    <Spinner
+        android:id="@+id/spinner1"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp" />
 
 </TableLayout>

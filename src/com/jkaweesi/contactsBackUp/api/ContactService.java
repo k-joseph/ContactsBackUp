@@ -17,10 +17,13 @@ package com.jkaweesi.contactsBackUp.api;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 
+import com.jkaweesi.contactsBackUp.db.CreateSQLiteDB;
 import com.jkaweesi.contactsBackUp.pojo.Contact;
 import com.jkaweesi.contactsBackUp.pojo.ContactEmails;
 import com.jkaweesi.contactsBackUp.pojo.ContactInstantMessenger;
@@ -47,6 +50,17 @@ public class ContactService {
 	 */
 	private static String contactId;
 
+	public static SQLiteDatabase createSQLiteContactsDatabaseAndTables(
+			String dbName, Activity activity) {
+		return CreateSQLiteDB.createContactsDatabaseAndTables(dbName, activity);
+	}
+
+	public static SQLiteDatabase insertContactsDataIntoSQLiteDB(String dbName,
+			Activity activity, ContentResolver contentResolver) {
+		return CreateSQLiteDB.insertContactsDataIntoSQLiteDB(dbName, activity,
+				contentResolver);
+	}
+
 	public static List<Contact> getStoredContacts(
 			ContentResolver contentResolver) {
 
@@ -58,15 +72,18 @@ public class ContactService {
 
 	public static List<Contact> getAndSetNamesAndPhonesEtc(ContentResolver cr,
 			List<Contact> contacts) {
-		Contact contact = new Contact();
-		ContactNames names = new ContactNames();
-		ContactPhoneNumbers phones = new ContactPhoneNumbers();
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
 				null, null, null);
+		int count = cur.getColumnCount();
+		System.out.println(count);
 
 		if (cur.getCount() > 0) {
 			while (cur.moveToNext()) {
-				int pos = cur.getPosition();
+
+				Contact contact = new Contact();
+				ContactNames names = new ContactNames();
+				ContactPhoneNumbers phones = new ContactPhoneNumbers();
+
 				String id = cur.getString(cur
 						.getColumnIndex(ContactsContract.Contacts._ID));
 				String name = cur
@@ -169,7 +186,7 @@ public class ContactService {
 				notes.addNote(note);
 		}
 		noteCur.close();
-		contact.setNotes(notes);
+		contact.setContactNotes(notes);
 
 		return contact;
 	}

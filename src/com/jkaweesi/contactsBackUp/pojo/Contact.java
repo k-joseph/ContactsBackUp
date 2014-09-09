@@ -37,7 +37,7 @@ public class Contact {
 	
 	private ContactInstantMessenger instantMessages;
 	
-	private ContactNotes notes;
+	private ContactNotes contactNotes;
 	
 	private ContactImage image;
 
@@ -112,12 +112,12 @@ public class Contact {
 	}
 	
 	
-	public ContactNotes getNotes() {
-		return notes;
+	public ContactNotes getContactNotes() {
+		return contactNotes;
 	}
 
-	public void setNotes(ContactNotes notes) {
-		this.notes = notes;
+	public void setContactNotes(ContactNotes notes) {
+		this.contactNotes = notes;
 	}
 
 	public void stringBufferTest() {

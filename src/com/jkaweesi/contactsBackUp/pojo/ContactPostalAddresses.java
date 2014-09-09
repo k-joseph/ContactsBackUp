@@ -19,6 +19,8 @@ import java.util.List;
 
 public class ContactPostalAddresses {
 
+	private String occupation;
+
 	private HomePostalAddress homePostalAddress;
 
 	private WorkPostalAddress workPostalAddress;
@@ -69,6 +71,14 @@ public class ContactPostalAddresses {
 
 	public void addOtherPostalAddress(OtherPostalAddress otherPostalAddress) {
 		this.otherPostalAddresses.add(otherPostalAddress);
+	}
+
+	public String getOccupation() {
+		return occupation;
+	}
+
+	public void setOccupation(String occupation) {
+		this.occupation = occupation;
 	}
 
 }

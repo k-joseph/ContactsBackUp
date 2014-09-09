@@ -16,4 +16,13 @@ package com.jkaweesi.contactsBackUp.pojo;
 
 public class OtherPostalAddress extends PostalAddress {
 
+	private String otherPostalAddress;
+
+	public String getOtherPostalAddress() {
+		return otherPostalAddress;
+	}
+
+	public void setOtherPostalAddress(String otherPostalAddress) {
+		this.otherPostalAddress = otherPostalAddress;
+	}
 }
